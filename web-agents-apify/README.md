@@ -64,13 +64,15 @@ it came from, and a `fetched_at` timestamp.
 
 ## Environment variables
 
-Two variables, and only the first is needed to run the data plane.
+Only the first is needed to run the data plane. The model key is for the
+workshop steps, and you can use either provider.
 
 - `APIFY_TOKEN` runs the source layer. Required.
-- `ANTHROPIC_API_KEY` is for the model steps you add at the workshop. Not needed
-  to run the data plane.
+- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` is for the model steps you add at
+  the workshop. Pick one provider, you do not need both. Neither is needed to run
+  the data plane.
 
-Both live in `.env`, never in the code.
+All of them live in `.env`, never in the code.
 
 ## What you build at the workshop
 
