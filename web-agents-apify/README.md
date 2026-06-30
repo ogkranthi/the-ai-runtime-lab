@@ -77,7 +77,6 @@ learning material.
 - `models.py`   the data model: Evidence, SourcedField, Prospect
 - `smoke.py`    a thirty-second check that your Apify token works
 - `fixtures/crawl_pages.json`   an offline crawl fixture so the agent runs with no keys
-- `seeds.example.json`   real companies for a live run
 - `requirements.txt`, `.env.example`
 
 ## Setup (VS Code terminal)
@@ -117,8 +116,8 @@ prospect list. Expected: four candidates, every field cited.
 
 Run it live against real Apify Actors and a real model:
 
-    python smoke.py            # first confirm the token: apify ok: SUCCEEDED
-    python agent.py --live     # needs APIFY_TOKEN and a model key
+    python smoke.py                          # first confirm the token: apify ok: SUCCEEDED
+    python agent.py --live --the-ai-runtime  # needs APIFY_TOKEN and a model key
 
 In live mode the model plans the Actors and extracts from the crawled text.
 Everything else is identical.
@@ -130,11 +129,16 @@ exist only in the offline crawl fixture, so a live run against them finds nothin
 and every field comes back "not found". That is the agent being honest: no public
 source, no value.
 
-For a live run, point the agent at real companies. `--live` defaults to the four
-real companies in `seeds.example.json`. To use your own watchlist, pass a JSON
-file of `{"company", "domain"}` objects:
+The `--the-ai-runtime` flag points a live run at a built-in watchlist of real
+developer-facing companies (Sentry, PostHog, Supabase, Tailscale). A live run
+uses that watchlist by default.
 
-    python agent.py --live --seeds my_targets.json
+To source a single company inline, pass it on the command line:
+
+    python agent.py --live --company "Acme" --domain acme.com
+
+`--domain` is optional and falls back to the company name. To change the default
+watchlist, edit `THE_AI_RUNTIME_SEEDS` at the top of `agent.py`.
 
 Live extraction depends on what each site actually publishes, so expect some
 fields to come back "not found". The banner reports honestly how many of the

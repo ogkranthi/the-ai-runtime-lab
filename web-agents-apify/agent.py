@@ -15,17 +15,15 @@ prospect list. The list looks done.
 Whether each value is actually true, fresh, and a real fit is the next question,
 and that is the reliability layer you build in module 2.
 
-    python agent.py                          # offline, no keys, runs the full loop
-    python agent.py --live                   # real Apify Actors and a real model
-    python agent.py --live --seeds f.json    # live, against your own company list
+    python agent.py                                       # offline, no keys, full loop
+    python agent.py --live --the-ai-runtime               # live, real watchlist
+    python agent.py --live --company "Acme" --domain acme.com  # live, one company
 
-The offline watchlist is fictional, so a live run uses the real companies in
-seeds.example.json unless you pass your own with --seeds.
+The offline watchlist is fictional. The --the-ai-runtime flag points a live run at
+a set of real companies, and --company / --domain runs a single company inline.
 """
 from __future__ import annotations
 
-import json
-import os
 import sys
 from typing import List
 
@@ -33,9 +31,6 @@ import present
 from llm import LLMModel, MockModel, Model
 from models import Prospect, SourcedField
 from source import ACTORS, ApifySource, MockSource
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-SEEDS_EXAMPLE = os.path.join(HERE, "seeds.example.json")
 
 # The fields the customer frame asks for, each with a spec the model extracts to.
 FIELDS = [
@@ -56,7 +51,7 @@ MAX_ACTIONS = 3  # sourcing actions per company before the agent moves on
 
 # The offline demo watchlist. These companies are FICTIONAL: they exist only in
 # the offline crawl fixture, so they resolve with `python agent.py` but not in a
-# live run. For `--live`, point the agent at real companies (see seeds.example.json).
+# live run. For `--live`, use --the-ai-runtime to source real companies.
 SEED_LIST = [
     ("Forge Labs", "forgelabs.io"),
     ("Quantal", "quantal.dev"),
@@ -65,11 +60,15 @@ SEED_LIST = [
 ]
 
 
-def load_seeds(path: str) -> List[tuple]:
-    """Load a seed list from JSON: a list of {company, domain} objects."""
-    with open(path, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
-    return [(d["company"], d["domain"]) for d in data]
+# Real companies for a live run: the The AI Runtime watchlist. The
+# --the-ai-runtime flag selects these, and a live run uses them by default, since
+# the demo companies above are fictional and do not resolve on the web.
+THE_AI_RUNTIME_SEEDS = [
+    ("Sentry", "sentry.io"),
+    ("PostHog", "posthog.com"),
+    ("Supabase", "supabase.com"),
+    ("Tailscale", "tailscale.com"),
+]
 
 
 def _short(text: str, n: int = 96) -> str:
@@ -114,14 +113,14 @@ def work_company(company: str, domain: str, model: Model, source, log=print) -> 
 def run(live: bool = False, seed_list=None, log=print) -> List[Prospect]:
     """Source every company on the seed list. Offline by default, live with keys.
 
-    Offline uses the fictional demo watchlist. Live defaults to the real companies
-    in seeds.example.json, since the demo companies do not resolve on the web.
+    Offline uses the fictional demo watchlist. Live defaults to the real The AI
+    Runtime watchlist, since the demo companies do not resolve on the web.
     """
     if live:
         model: Model = LLMModel()
         source = ApifySource()
         if seed_list is None:
-            seed_list = load_seeds(SEEDS_EXAMPLE)
+            seed_list = THE_AI_RUNTIME_SEEDS
     else:
         model = MockModel()
         source = MockSource()
@@ -178,14 +177,24 @@ def show(prospects: List[Prospect]) -> None:
     print()
 
 
-def _parse_seeds_arg(argv: List[str]):
-    if "--seeds" in argv:
-        i = argv.index("--seeds")
+def _arg_value(argv: List[str], flag: str):
+    if flag in argv:
+        i = argv.index(flag)
         if i + 1 < len(argv):
-            return load_seeds(argv[i + 1])
+            return argv[i + 1]
+    return None
+
+
+def _seeds_from_argv(argv: List[str]):
+    """Pick the seed list from the flags, or None to use run()'s default."""
+    company = _arg_value(argv, "--company")
+    if company:
+        # One company inline. --domain is optional; fall back to the name.
+        return [(company, _arg_value(argv, "--domain") or company)]
+    if "--the-ai-runtime" in argv:
+        return THE_AI_RUNTIME_SEEDS
     return None
 
 
 if __name__ == "__main__":
-    seeds = _parse_seeds_arg(sys.argv)
-    show(run(live="--live" in sys.argv, seed_list=seeds))
+    show(run(live="--live" in sys.argv, seed_list=_seeds_from_argv(sys.argv)))
