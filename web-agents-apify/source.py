@@ -11,43 +11,11 @@ Lab page: https://lab.theairuntime.com/01/
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
 
 from apify_client import ApifyClient
 
-
-@dataclass
-class Evidence:
-    """Where a single field's value came from. No evidence, no value."""
-
-    source_url: str
-    snippet: str
-    fetched_at: str  # ISO 8601 UTC
-
-
-@dataclass
-class Field:
-    """A scored field plus the evidence that backs it.
-
-    `value` stays None until a source supports it.
-    """
-
-    value: Optional[str] = None
-    evidence: Optional[Evidence] = None
-
-
-@dataclass
-class CandidateRecord:
-    """One company, one record. Each field traces to a source or stays empty."""
-
-    company: str
-    domain: str
-    size: Field = field(default_factory=Field)
-    product_type: Field = field(default_factory=Field)
-    eng_leader_contact: Field = field(default_factory=Field)
-    reason_to_reach_out: Field = field(default_factory=Field)
+from models import CandidateRecord, Evidence, Field
 
 
 def _now() -> str:
