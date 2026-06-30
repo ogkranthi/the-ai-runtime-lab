@@ -12,9 +12,12 @@ Lab page: https://lab.theairuntime.com/01/
 
 ## The two modules
 
-**Module 1, the use-case agent end to end.** Pull public signals with evidence,
-gate every claim through the trust core, apply the fit rubric, and produce a
-prospect list where every field traces to a source.
+**Module 1, the use-case agent end to end.** The founder hands the agent a seed
+list of target companies. For each one the agent runs a loop: plan which Apify
+Actor to run, source public pages, extract each rubric field with a verbatim
+evidence snippet, gate every claim through the trust core, and take another
+sourcing action if a required field is still open. It produces a prospect list
+where every field traces to a source.
 
 **Module 2, evals and prod-ready.** Grade the trust core against the Dirty
 Thirty trap set on two numbers, then turn a live run into a founder report with
@@ -25,17 +28,18 @@ the provenance in plain sight and one headline number.
 Module 1, the agent:
 
 - `rubric.md`   the fit profile as explicit, checkable rules (rubric v1)
-- `source.py`   the source layer: pull public signals and attach evidence
+- `agent.py`    the agent loop: plan, source, extract, verify, iterate, qualify
+- `llm.py`      the model layer: a live model (Anthropic or OpenRouter) or an offline mock
+- `source.py`   the data plane: run Apify Actors, or replay the offline fixture
 - `trust.py`    the trust core: judge one claim and its evidence, catch the four breaks
 - `policy.py`   the fit filter, applied only to what the trust core accepted
-- `agent.py`    wires source, trust, and policy into one end-to-end run
 
 Module 2, evals and report:
 
 - `eval.py`     grade the trust core against the Dirty Thirty
 - `report.py`   the founder-facing trust report
 - `fixtures/dirty_thirty.json`   thirty frozen claims, ten clean and twenty planted
-- `fixtures/sample_batch.json`   an offline batch so the agent runs with no token
+- `fixtures/crawl_pages.json`    an offline crawl fixture so the agent runs with no keys
 
 Shared:
 
@@ -77,15 +81,20 @@ without it.
 
     python agent.py
 
-Runs source, trust, and policy over the offline sample batch and prints the
-qualified list plus a degrade list: the companies it cannot stand behind and
-exactly why. Expected: `qualified 2/4 companies`, with the other two held back
-with named gaps.
+Runs the agent loop over the seed list using the offline mock model and crawl
+fixture, so it needs no keys. For each company it prints the sourcing actions it
+took, what the trust core dropped, and the fit gaps. Expected: `qualified 2/4
+companies`. Watch Quantal take a second action (the jobs board) to fill its
+reason-to-reach-out gap, and Helios get held back on a conflicting headcount.
 
-To confirm your Apify token and pull a live record:
+Run it live against real Apify Actors and a real model:
 
-    python smoke.py       # prints: apify ok: SUCCEEDED
-    python source.py      # one live company, evidence on every field
+    python smoke.py            # first confirm the token: apify ok: SUCCEEDED
+    python agent.py --live     # needs APIFY_TOKEN and a model key
+
+In live mode the model plans the Actors and extracts fields from the crawled
+text; everything else is identical. The trust core stays deterministic, so the
+verification step does not drift.
 
 ## Run module 2, evals and report
 
@@ -123,10 +132,11 @@ unsupported accepted claims, a reason on every rejection.
 Only the first is needed, and only for live Apify pulls. The pipeline otherwise
 runs offline.
 
-- `APIFY_TOKEN` runs the live source layer.
-- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` is optional, for swapping the
-  deterministic trust core for a model-backed judge. Pick one provider, you do
-  not need both.
+- `APIFY_TOKEN` runs the live Apify Actors.
+- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` drives the live agent: the model
+  plans Actors and extracts fields from crawled text. Pick one provider, you do
+  not need both. Only `python agent.py --live` needs these; the trust core stays
+  deterministic either way.
 
 All of them live in `.env`, never in the code.
 

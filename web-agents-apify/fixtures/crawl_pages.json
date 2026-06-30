@@ -1,0 +1,113 @@
+{
+  "as_of": "2026-06-30",
+  "note": "Offline crawl fixture for the module 1 agent. Each page is what an Apify Actor would return (url, text, fetched_at). The `extractable` list stands in for what a real model pulls from the text; every snippet appears verbatim in `text`, so the evidence stays honest. Four companies: two qualify, two are degraded for different reasons.",
+  "companies": {
+    "Forge Labs": {
+      "website_crawler": [
+        {"url": "https://forgelabs.io/about", "fetched_at": "2026-06-12",
+         "text": "About Forge Labs. Forge Labs is headquartered in San Francisco, United States. Forge Labs is a team of 120 employees building developer tooling.",
+         "extractable": [
+           {"field": "location", "value": "United States", "claimed_value": "United States", "snippet": "Forge Labs is headquartered in San Francisco, United States."},
+           {"field": "size", "value": "120 employees", "claimed_value": "120 employees", "snippet": "Forge Labs is a team of 120 employees building developer tooling."}
+         ]},
+        {"url": "https://forgelabs.io", "fetched_at": "2026-06-12",
+         "text": "Forge Labs builds developer tools for backend teams.",
+         "extractable": [
+           {"field": "product_type", "value": "developer tools", "claimed_value": "developer tools", "snippet": "Forge Labs builds developer tools for backend teams."}
+         ]},
+        {"url": "https://forgelabs.io/team", "fetched_at": "2026-05-20",
+         "text": "Leadership. VP Engineering, Dana Reed leads the platform group.",
+         "extractable": [
+           {"field": "eng_leader_contact", "value": "VP Engineering, Dana Reed", "claimed_value": "VP Engineering, Dana Reed", "snippet": "VP Engineering, Dana Reed leads the platform group."}
+         ]},
+        {"url": "https://forgelabs.io/blog/api-beta", "fetched_at": "2026-06-20",
+         "text": "Today Forge Labs shipped a public API beta in June 2026.",
+         "extractable": [
+           {"field": "reason_to_reach_out", "value": "shipped a public API beta in June 2026", "claimed_value": "shipped a public API beta in June 2026", "snippet": "Today Forge Labs shipped a public API beta in June 2026."}
+         ]}
+      ]
+    },
+    "Quantal": {
+      "website_crawler": [
+        {"url": "https://quantal.dev/about", "fetched_at": "2026-06-01",
+         "text": "Quantal is based in Austin, United States. Quantal now has 210 employees across three offices.",
+         "extractable": [
+           {"field": "location", "value": "United States", "claimed_value": "United States", "snippet": "Quantal is based in Austin, United States."},
+           {"field": "size", "value": "210 employees", "claimed_value": "210 employees", "snippet": "Quantal now has 210 employees across three offices."}
+         ]},
+        {"url": "https://quantal.dev", "fetched_at": "2026-04-15",
+         "text": "Quantal is an API testing platform for engineering teams.",
+         "extractable": [
+           {"field": "product_type", "value": "API testing platform", "claimed_value": "API testing platform", "snippet": "Quantal is an API testing platform for engineering teams."}
+         ]},
+        {"url": "https://quantal.dev/team", "fetched_at": "2026-06-05",
+         "text": "Head of Engineering, Sam Okafor joined in 2024.",
+         "extractable": [
+           {"field": "eng_leader_contact", "value": "Head of Engineering, Sam Okafor", "claimed_value": "Head of Engineering, Sam Okafor", "snippet": "Head of Engineering, Sam Okafor joined in 2024."}
+         ]}
+      ],
+      "jobs_board": [
+        {"url": "https://quantal.dev/careers", "fetched_at": "2026-06-18",
+         "text": "Open roles. Quantal is hiring 5 backend engineers as of June 2026.",
+         "extractable": [
+           {"field": "reason_to_reach_out", "value": "hiring 5 backend engineers as of June 2026", "claimed_value": "hiring 5 backend engineers as of June 2026", "snippet": "Quantal is hiring 5 backend engineers as of June 2026."}
+         ]}
+      ]
+    },
+    "Mega Corp": {
+      "website_crawler": [
+        {"url": "https://megacorp.com/about", "fetched_at": "2026-06-10",
+         "text": "Mega Corp is headquartered in New York, United States. Mega Corp employs 5000 employees worldwide.",
+         "extractable": [
+           {"field": "location", "value": "United States", "claimed_value": "United States", "snippet": "Mega Corp is headquartered in New York, United States."},
+           {"field": "size", "value": "5000 employees", "claimed_value": "5000 employees", "snippet": "Mega Corp employs 5000 employees worldwide."}
+         ]},
+        {"url": "https://megacorp.com", "fetched_at": "2026-06-10",
+         "text": "Mega Corp ships developer tools and cloud services.",
+         "extractable": [
+           {"field": "product_type", "value": "developer tools", "claimed_value": "developer tools", "snippet": "Mega Corp ships developer tools and cloud services."}
+         ]},
+        {"url": "https://megacorp.com/team", "fetched_at": "2026-06-02",
+         "text": "VP Engineering, Pat Doe runs the developer platform org.",
+         "extractable": [
+           {"field": "eng_leader_contact", "value": "VP Engineering, Pat Doe", "claimed_value": "VP Engineering, Pat Doe", "snippet": "VP Engineering, Pat Doe runs the developer platform org."}
+         ]},
+        {"url": "https://megacorp.com/blog/sdk", "fetched_at": "2026-06-15",
+         "text": "Mega Corp released a new SDK in June 2026.",
+         "extractable": [
+           {"field": "reason_to_reach_out", "value": "released a new SDK in June 2026", "claimed_value": "released a new SDK in June 2026", "snippet": "Mega Corp released a new SDK in June 2026."}
+         ]}
+      ]
+    },
+    "Helios CRM": {
+      "website_crawler": [
+        {"url": "https://helios.app/about", "fetched_at": "2026-06-10",
+         "text": "Helios CRM is based in Denver, United States. Helios CRM is a team of 120 employees.",
+         "extractable": [
+           {"field": "location", "value": "United States", "claimed_value": "United States", "snippet": "Helios CRM is based in Denver, United States."},
+           {"field": "size", "value": "120 employees", "claimed_value": "120 employees", "snippet": "Helios CRM is a team of 120 employees."}
+         ]},
+        {"url": "https://directory.example/helios", "fetched_at": "2026-06-12",
+         "text": "Helios CRM employs around 260 employees according to this directory.",
+         "extractable": [
+           {"field": "size", "value": "260 employees", "claimed_value": "260 employees", "snippet": "Helios CRM employs around 260 employees according to this directory."}
+         ]},
+        {"url": "https://helios.app", "fetched_at": "2026-06-08",
+         "text": "Helios CRM offers a developer API platform for integrations.",
+         "extractable": [
+           {"field": "product_type", "value": "developer API platform", "claimed_value": "developer API platform", "snippet": "Helios CRM offers a developer API platform for integrations."}
+         ]},
+        {"url": "https://helios.app/team", "fetched_at": "2026-06-08",
+         "text": "CTO, Robin Vale leads engineering at Helios CRM.",
+         "extractable": [
+           {"field": "eng_leader_contact", "value": "CTO, Robin Vale", "claimed_value": "CTO, Robin Vale", "snippet": "CTO, Robin Vale leads engineering at Helios CRM."}
+         ]}
+      ],
+      "jobs_board": [
+        {"url": "https://helios.app/careers", "fetched_at": "2026-06-09",
+         "text": "Helios CRM careers. We are always interested in talented people. No specific roles are listed right now.",
+         "extractable": []}
+      ]
+    }
+  }
+}

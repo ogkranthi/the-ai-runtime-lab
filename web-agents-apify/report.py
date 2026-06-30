@@ -33,6 +33,8 @@ def render(results: List[CompanyResult]) -> str:
         lines.append("")
         for r in qualified:
             lines.append(f"### {r.company} ({r.domain})")
+            if r.actions:
+                lines.append(f"- sourced by: {'; '.join(r.actions)}")
             for v in r.verdicts:
                 if v.decision == "accept":
                     f = v.trace["field"]

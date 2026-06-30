@@ -1,1 +1,6 @@
 apify-client>=1.7
+
+# Live agent only (module 1 `python agent.py --live`). The offline run and the
+# eval need neither. anthropic for ANTHROPIC_API_KEY, requests for OPENROUTER_API_KEY.
+anthropic>=0.40
+requests>=2.31
