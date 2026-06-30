@@ -4,3 +4,4 @@ apify-client>=1.7
 # eval need neither. anthropic for ANTHROPIC_API_KEY, requests for OPENROUTER_API_KEY.
 anthropic>=0.40
 requests>=2.31
+python-dotenv>=1.0
