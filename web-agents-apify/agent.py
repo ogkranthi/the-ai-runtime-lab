@@ -1,37 +1,33 @@
-"""End-to-end sourcing agent for Field Lab 01, module 1.
+"""The sourcing agent, Field Lab 01 module 1.
 
-The use case: a B2B SaaS founder hands the agent a seed list of target companies
-and wants a weekly list of qualified design-partner candidates. The agent works
-each company as an agent, not a fixed pipeline:
+Give it a list of target companies. For each one it works like an agent, not a
+script:
 
-  1. plan     ask the model which Apify Actor to run next, given the open gaps
+  1. plan     ask the model which Apify Actor to run next, given what is missing
   2. source   run that Actor through the data plane to pull public pages
-  3. extract  the model pulls each rubric field with a verbatim evidence snippet
-  4. verify   the trust core judges every claim; only accepted values are kept
-  5. iterate  if a required field is still open, take another sourcing action
-  6. qualify  apply the fit rubric to what survived, and report
+  3. extract  the model pulls each rubric field with the exact snippet it came from
+  4. iterate  if a field is still missing, take another sourcing action
+  5. present  a prospect card per company, every field traced to a source
 
-It degrades, it does not pad. It hands over the companies it can stand behind and
-names the exact gap on the rest. Run offline by default (mock model and source,
-no keys), or `--live` against real Apify and a real model.
+That is the whole of module 1: point it at the web, get back a clean, cited
+prospect list. The list looks done.
 
-    python agent.py            # offline, verifiable, no keys
+Whether each value is actually true, fresh, and a real fit is the next question,
+and that is the reliability layer you build in module 2.
+
+    python agent.py            # offline, no keys, runs the full loop
     python agent.py --live     # real Apify Actors and a real model
 """
 from __future__ import annotations
 
 import sys
-from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import List
 
 from llm import LLMModel, MockModel, Model
-from models import Claim, Evidence, Verdict
-from policy import FitResult, fits
+from models import Prospect, SourcedField
 from source import ACTORS, ApifySource, MockSource
-from trust import judge
 
-# The fields the rubric scores, each with a short spec the model extracts against.
+# The fields the customer frame asks for, each with a spec the model extracts to.
 FIELDS = [
     ("location", "the country the company is headquartered in"),
     ("size", "employee headcount, for example '120 employees'"),
@@ -39,73 +35,14 @@ FIELDS = [
     ("eng_leader_contact", "an engineering leader's title and name"),
     ("reason_to_reach_out", "a recent, specific event worth reaching out about now"),
 ]
-MAX_ACTIONS = 3  # sourcing actions per company before the agent gives up
-
-
-@dataclass
-class CompanyResult:
-    """One company after the full agent loop, with the trace kept for the report."""
-
-    company: str
-    domain: str
-    accepted: Dict[str, str] = field(default_factory=dict)
-    verdicts: List[Verdict] = field(default_factory=list)
-    actions: List[str] = field(default_factory=list)
-    fit: FitResult = None  # set after policy
-    qualified: bool = False
-
-
-def work_company(company: str, domain: str, model: Model, source, as_of: str) -> CompanyResult:
-    """Run the agent loop for a single company until its gaps close or budget runs out."""
-    evidence_by_field: Dict[str, List[Evidence]] = defaultdict(list)
-    value_by_field: Dict[str, str] = {}
-    verdict_by_field: Dict[str, Verdict] = {}
-    actions: List[str] = []
-    tried: List[str] = []
-
-    def open_gaps() -> List[str]:
-        return [
-            name for name, _ in FIELDS
-            if name not in verdict_by_field or verdict_by_field[name].decision != "accept"
-        ]
-
-    for _ in range(MAX_ACTIONS):
-        gaps = open_gaps()
-        if not gaps:
-            break
-
-        plan = model.plan(company, domain, gaps, ACTORS, tried)
-        actor = plan.get("actor", "stop")
-        if actor not in ACTORS or actor in tried:
-            actions.append(f"stop: {plan.get('rationale', 'no further action')}")
-            break
-        tried.append(actor)
-
-        pages = source.run(actor, company, domain)
-        actions.append(f"ran {actor} ({len(pages)} pages): {plan.get('rationale', '')}".strip())
-
-        # Extract evidence-bearing fields, then re-judge everything we now hold.
-        for hit in model.extract(company, pages, FIELDS):
-            f = hit["field"]
-            evidence_by_field[f].append(hit["evidence"])
-            value_by_field.setdefault(f, hit["value"])
-
-        for f, evidence in evidence_by_field.items():
-            claim = Claim(field=f, value=value_by_field[f], company=company,
-                          domain=domain, evidence=evidence)
-            verdict_by_field[f] = judge(claim, as_of=as_of)
-
-    accepted = {
-        f: value_by_field[f]
-        for f, v in verdict_by_field.items() if v.decision == "accept"
-    }
-    fit = fits(company, accepted)
-    return CompanyResult(
-        company=company, domain=domain, accepted=accepted,
-        verdicts=list(verdict_by_field.values()), actions=actions,
-        fit=fit, qualified=fit.fits,
-    )
-
+LABELS = {
+    "location": "location",
+    "size": "size",
+    "product_type": "product",
+    "eng_leader_contact": "engineering lead",
+    "reason_to_reach_out": "reason to reach out",
+}
+MAX_ACTIONS = 3  # sourcing actions per company before the agent moves on
 
 # A weekly seed list: the founder's watchlist of target companies.
 SEED_LIST = [
@@ -116,35 +53,78 @@ SEED_LIST = [
 ]
 
 
-def run(live: bool = False, seed_list=SEED_LIST) -> List[CompanyResult]:
-    """Run the agent over the seed list. Offline by default, live with keys."""
+def work_company(company: str, domain: str, model: Model, source, log=print) -> Prospect:
+    """Run the agent loop for one company until its card is full or budget runs out."""
+    prospect = Prospect(company=company, domain=domain)
+    tried: List[str] = []
+
+    log(f"\n  {company} ({domain})")
+    for _ in range(MAX_ACTIONS):
+        missing = [name for name, _ in FIELDS if name not in prospect.fields]
+        if not missing:
+            break
+
+        plan = model.plan(company, domain, missing, ACTORS, tried)
+        actor = plan.get("actor", "stop")
+        rationale = plan.get("rationale", "")
+        if actor not in ACTORS or actor in tried:
+            prospect.actions.append(f"stop: {rationale}")
+            log(f"    stop: {rationale}")
+            break
+        tried.append(actor)
+
+        pages = source.run(actor, company, domain)
+        for hit in model.extract(company, pages, FIELDS):
+            prospect.fields.setdefault(
+                hit["field"], SourcedField(value=hit["value"], evidence=hit["evidence"])
+            )
+
+        found = len(prospect.fields)
+        prospect.actions.append(f"ran {actor}: {rationale}")
+        log(f"    plan -> {actor}: {rationale}")
+        log(f"    crawled {len(pages)} pages, sourced {found}/{len(FIELDS)} fields")
+
+    return prospect
+
+
+def run(live: bool = False, seed_list=SEED_LIST, log=print) -> List[Prospect]:
+    """Source every company on the seed list. Offline by default, live with keys."""
     if live:
         model: Model = LLMModel()
         source = ApifySource()
-        as_of = MockSource().as_of  # a real run would stamp today's date here
     else:
         model = MockModel()
         source = MockSource()
-        as_of = source.as_of
 
-    return [work_company(c, d, model, source, as_of) for c, d in seed_list]
+    log(f"Sourcing {len(seed_list)} target companies for design-partner fit...")
+    return [work_company(c, d, model, source, log=log) for c, d in seed_list]
 
 
-def _summary(results: List[CompanyResult]) -> str:
-    qualified = [r for r in results if r.qualified]
-    lines = [f"qualified {len(qualified)}/{len(results)} companies", ""]
-    for r in results:
-        mark = "QUALIFIED" if r.qualified else "degraded "
-        lines.append(f"{mark}  {r.company} ({r.domain})")
-        for step in r.actions:
-            lines.append(f"            step {step}")
-        for v in r.verdicts:
-            if v.decision != "accept":
-                lines.append(f"            dropped {v.trace['field']}: {v.reason}")
-        for gap in r.fit.gaps:
-            lines.append(f"            gap {gap}")
+def present(prospects: List[Prospect]) -> str:
+    """The deliverable: a clean prospect list with a source on every field."""
+    total_fields = sum(len(p.fields) for p in prospects)
+    lines = [
+        "",
+        "=" * 60,
+        "PROSPECT LIST",
+        "=" * 60,
+        f"{len(prospects)} candidates, {total_fields} fields, every one traced to a source.",
+        "",
+    ]
+    for p in prospects:
+        lines.append(f"{p.company}  ({p.domain})")
+        for name, _ in FIELDS:
+            label = LABELS[name]
+            sf = p.fields.get(name)
+            if sf:
+                lines.append(f"  {label:<22}{sf.value}")
+                lines.append(f"  {'':<22}via {sf.evidence.source_url}")
+            else:
+                lines.append(f"  {label:<22}(not found)")
+        lines.append("")
     return "\n".join(lines)
 
 
 if __name__ == "__main__":
-    print(_summary(run(live="--live" in sys.argv)))
+    prospects = run(live="--live" in sys.argv)
+    print(present(prospects))
