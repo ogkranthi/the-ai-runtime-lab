@@ -26,8 +26,50 @@ For each company on the seed list it runs a loop:
 You can watch Quantal take a second action (the jobs board) to find a reason to
 reach out that was not on its website.
 
+## How it works
+
+```mermaid
+flowchart TB
+    seed["Seed list of companies<br/>(name, domain)"]
+
+    subgraph agent["agent.py: the agent loop"]
+        direction TB
+        plan["1 plan next action"]
+        src["2 source pages"]
+        ext["3 extract fields"]
+        check{"all 5 fields found?"}
+        plan --> src --> ext --> check
+        check -- "no, budget left" --> plan
+    end
+
+    subgraph model["llm.py: model layer"]
+        live["LLMModel<br/>Anthropic or OpenRouter"]
+        mock["MockModel<br/>offline fixture"]
+    end
+
+    subgraph dataplane["source.py: data plane"]
+        apify["ApifySource"]
+        mocksrc["MockSource"]
+        actor["apify/website-content-crawler"]
+        apify --> actor
+    end
+
+    seed --> plan
+    plan -. "plan() call" .-> model
+    ext -. "extract() call" .-> model
+    src -. "run(actor)" .-> dataplane
+    check -- "yes or budget spent" --> out["present()<br/>cited prospect list"]
+```
+
+The agent alternates between thinking (LLM calls in `llm.py`) and acting (tool
+calls in `source.py`), and `agent.py` only orchestrates. For the full walkthrough,
+the prompts behind each LLM call, the Apify Actor calls, the data model, and the
+design choices, read **[ARCHITECTURE.md](ARCHITECTURE.md)**. It is written as
+learning material.
+
 ## What is here
 
+- `ARCHITECTURE.md`   the full technical walkthrough and learning guide
 - `rubric.md`   the customer frame: the five fields the agent sources to
 - `agent.py`    the agent loop and the prospect-list output
 - `llm.py`      the model layer: a live model (Anthropic or OpenRouter) or an offline mock
