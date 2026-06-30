@@ -23,6 +23,7 @@ from __future__ import annotations
 import sys
 from typing import List
 
+import present
 from llm import LLMModel, MockModel, Model
 from models import Prospect, SourcedField
 from source import ACTORS, ApifySource, MockSource
@@ -100,31 +101,40 @@ def run(live: bool = False, seed_list=SEED_LIST, log=print) -> List[Prospect]:
     return [work_company(c, d, model, source, log=log) for c, d in seed_list]
 
 
-def present(prospects: List[Prospect]) -> str:
-    """The deliverable: a clean prospect list with a source on every field."""
-    total_fields = sum(len(p.fields) for p in prospects)
-    lines = [
-        "",
-        "=" * 60,
-        "PROSPECT LIST",
-        "=" * 60,
-        f"{len(prospects)} candidates, {total_fields} fields, every one traced to a source.",
-        "",
-    ]
+def _short_url(url: str) -> str:
+    return url.replace("https://", "").replace("http://", "")
+
+
+def show(prospects: List[Prospect]) -> None:
+    """The deliverable: a clean, boxed prospect list, a source on every field."""
+    total = sum(len(p.fields) for p in prospects)
+    possible = len(prospects) * len(FIELDS)
+
+    print("\n" + present.rule("PROSPECT LIST  ·  design-partner candidates"))
+    print()
     for p in prospects:
-        lines.append(f"{p.company}  ({p.domain})")
+        title = present.style(f"{p.company}", present.BOLD, present.CYAN)
+        print(f"{title}  {present.style(p.domain, present.DIM)}")
+        rows = []
         for name, _ in FIELDS:
-            label = LABELS[name]
             sf = p.fields.get(name)
             if sf:
-                lines.append(f"  {label:<22}{sf.value}")
-                lines.append(f"  {'':<22}via {sf.evidence.source_url}")
+                rows.append([
+                    LABELS[name],
+                    (sf.value, present.GREEN),
+                    (_short_url(sf.evidence.source_url), present.DIM),
+                ])
             else:
-                lines.append(f"  {label:<22}(not found)")
-        lines.append("")
-    return "\n".join(lines)
+                rows.append([LABELS[name], ("not found", present.RED), ""])
+        print(present.table(["field", "value", "source"], rows, caps=[20, 46, 40]))
+        print()
+
+    print(present.banner(
+        f"✓  {len(prospects)} candidates sourced  ·  {total}/{possible} fields  ·  every value cited"
+    ))
+    print()
 
 
 if __name__ == "__main__":
     prospects = run(live="--live" in sys.argv)
-    print(present(prospects))
+    show(prospects)

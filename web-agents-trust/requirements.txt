@@ -1,0 +1,2 @@
+# Module 2 is pure Python standard library. No third-party packages, no keys,
+# no network. The trust core is deterministic so the eval is reproducible.
