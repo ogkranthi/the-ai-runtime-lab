@@ -62,9 +62,22 @@ class ApifySource:
                 "maxCrawlPages": max_pages,
             },
         )
+        dataset_id = None
+        if isinstance(run, dict):
+            dataset_id = run.get("defaultDatasetId") or run.get("default_dataset_id")
+        else:
+            dataset_id = (
+                getattr(run, "default_dataset_id", None)
+                or getattr(run, "defaultDatasetId", None)
+            )
+            if not dataset_id and hasattr(run, "get"):
+                dataset_id = run.get("defaultDatasetId")
+        if not dataset_id:
+            raise RuntimeError("Apify run did not include a default dataset id.")
+
         fetched = _now()
         pages = []
-        for item in self.client.dataset(run["defaultDatasetId"]).iterate_items():
+        for item in self.client.dataset(dataset_id).iterate_items():
             pages.append({
                 "url": item.get("url", ""),
                 "text": item.get("text", "") or "",

@@ -23,6 +23,15 @@ from typing import Dict, List
 
 from models import Evidence
 
+try:
+    from dotenv import load_dotenv
+except Exception:  # pragma: no cover - keep offline path resilient
+    load_dotenv = None
+
+if load_dotenv:
+    # Make live mode work from plain terminals by loading project .env values.
+    load_dotenv()
+
 
 def _strip_fences(text: str) -> str:
     t = text.strip()
