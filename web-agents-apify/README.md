@@ -1,24 +1,49 @@
-# Apify data plane, Field Lab 01
+# web-agents-apify, Field Lab 01
 
-Apify-specific code for The AI Runtime Field Lab 01, "A Reliability Layer for
-Web-Grounded Agents." Apify is the data plane: the Actors and datasets that feed
-the sourcing agent. Everything in this folder is the source layer only. The
-trust core, the policy filter, and the eval are what you build at the workshop.
+The full reference build for The AI Runtime Field Lab 01, "A Reliability Layer
+for Web-Grounded Agents." Apify is the data plane: the Actors and datasets that
+feed the sourcing agent. On top of it sits the artifact the lab is really about,
+a source-agnostic trust core that decides which web claims are safe to act on.
+
+The whole pipeline runs end to end with no model key. The trust core is
+deterministic, so the eval produces the same safe-to-act number every run.
 
 Lab page: https://lab.theairuntime.com/01/
 
+## The two modules
+
+**Module 1, the use-case agent end to end.** Pull public signals with evidence,
+gate every claim through the trust core, apply the fit rubric, and produce a
+prospect list where every field traces to a source.
+
+**Module 2, evals and prod-ready.** Grade the trust core against the Dirty
+Thirty trap set on two numbers, then turn a live run into a founder report with
+the provenance in plain sight and one headline number.
+
 ## What is here
 
-- `smoke.py`      a thirty-second check that your Apify token works
-- `source.py`     the source layer: pull public signals and attach evidence
-- `requirements.txt`
-- `.env.example`  copy to `.env` and add your token
+Module 1, the agent:
 
-## Run it end to end (VS Code terminal)
+- `rubric.md`   the fit profile as explicit, checkable rules (rubric v1)
+- `source.py`   the source layer: pull public signals and attach evidence
+- `trust.py`    the trust core: judge one claim and its evidence, catch the four breaks
+- `policy.py`   the fit filter, applied only to what the trust core accepted
+- `agent.py`    wires source, trust, and policy into one end-to-end run
 
-The data plane runs with nothing but your keys. No agent, no scaffolding. Clone
-it, add an Apify token, and `source.py` pulls public signals with evidence
-attached to every field.
+Module 2, evals and report:
+
+- `eval.py`     grade the trust core against the Dirty Thirty
+- `report.py`   the founder-facing trust report
+- `fixtures/dirty_thirty.json`   thirty frozen claims, ten clean and twenty planted
+- `fixtures/sample_batch.json`   an offline batch so the agent runs with no token
+
+Shared:
+
+- `models.py`   the data model: Evidence, Claim, Verdict, and the record types
+- `smoke.py`    a thirty-second check that your Apify token works
+- `requirements.txt`, `.env.example`
+
+## Setup (VS Code terminal)
 
 These steps use the VS Code integrated terminal (open it with
 `Terminal > New Terminal`). Every command is plain shell, so any terminal works
@@ -39,64 +64,76 @@ integrated terminal and `cd web-agents-apify`.
 
 On Windows, activate with `.venv\Scripts\activate` instead of the `source` line.
 
-### 3. Add your token
+### 3. Add your token (only needed for live Apify)
 
     cp .env.example .env
 
 Open `.env` in VS Code and paste your `APIFY_TOKEN`. Get one at
 https://console.apify.com/account/integrations. The token stays in `.env` and
-never goes in the code.
+never goes in the code. The eval, the agent, and the report all run offline
+without it.
 
-### 4. Confirm it runs
+## Run module 1, the agent end to end
 
-    python smoke.py
+    python agent.py
 
-Expected output: `apify ok: SUCCEEDED`. If you do not see that, fix it now, not
-at minute five of the build.
+Runs source, trust, and policy over the offline sample batch and prints the
+qualified list plus a degrade list: the companies it cannot stand behind and
+exactly why. Expected: `qualified 2/4 companies`, with the other two held back
+with named gaps.
 
-### 5. Run the source layer
+To confirm your Apify token and pull a live record:
 
-    python source.py
+    python smoke.py       # prints: apify ok: SUCCEEDED
+    python source.py      # one live company, evidence on every field
 
-This pulls the public signals the rubric scores for one company and prints a
-record where every field carries its evidence: the source URL, the exact snippet
-it came from, and a `fetched_at` timestamp.
+## Run module 2, evals and report
+
+    python eval.py
+
+Grades the trust core against the Dirty Thirty and prints a verdict per record
+plus the scorecard. Expected: `RESULT: PASS`, caught 20/20 bad, kept 10/10
+accepted clean.
+
+    python report.py
+
+Renders the founder trust report from an agent run: per-company provenance, what
+was checked, what was rejected and why, ending with the headline number.
+
+## The bar, the Dirty Thirty
+
+Thirty frozen records with known answers, ten clean and twenty each planted with
+one break. The guard is graded on two numbers, not one. An agent that rejects
+everything gets perfect recall and fails on precision, so it fails.
+
+| group        | count | verdict          |
+|--------------|-------|------------------|
+| clean        | 10    | accept           |
+| stale        | 5     | review or reject |
+| unsupported  | 5     | review or reject |
+| conflicting  | 5     | review           |
+| drift        | 5     | reject           |
+
+Pass bar: bad-record recall at or above 85 percent, clean-record precision at or
+above 80 percent, evidence coverage 100 percent on accepted records, zero
+unsupported accepted claims, a reason on every rejection.
 
 ## Environment variables
 
-Only the first is needed to run the data plane. The model key is for the
-workshop steps, and you can use either provider.
+Only the first is needed, and only for live Apify pulls. The pipeline otherwise
+runs offline.
 
-- `APIFY_TOKEN` runs the source layer. Required.
-- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` is for the model steps you add at
-  the workshop. Pick one provider, you do not need both. Neither is needed to run
-  the data plane.
+- `APIFY_TOKEN` runs the live source layer.
+- `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` is optional, for swapping the
+  deterministic trust core for a model-backed judge. Pick one provider, you do
+  not need both.
 
 All of them live in `.env`, never in the code.
 
-## What you build at the workshop
-
-This folder is the source layer. At the workshop you build the rest, file by
-file, run from this same VS Code terminal:
-
-1. `rubric.md`   write down what "qualified" means before you build, so the
-   target cannot drift to match whatever the agent produces.
-2. `source.py`   already here: pull the signals the rubric scores and attach
-   evidence to every field.
-3. `trust.py`    the artifact: one source-agnostic function that decides whether
-   a single claim is true and supported right now, and catches the four breaks
-   (stale, unsupported, conflicting, extraction-drift).
-4. `eval.py`     grade the trust core against the Dirty Thirty trap set on two
-   numbers: bad-record recall and clean-record precision.
-5. `policy.py`   the thin fit filter, applied only to claims the trust core
-   already accepted. It decides fit, never truth.
-6. Founder report and teardown: turn the live run into a qualified list with
-   provenance in plain sight and one headline number, how many leads are safe to
-   act on and on what basis.
-
-## The one rule this folder follows
+## The one rule this build follows
 
 Every field the source layer returns carries its evidence: the source URL, the
 exact snippet it came from, and a `fetched_at` timestamp. Plausible is not
-verified. A field with no source is a missing field, not a value. That evidence
-is exactly what the trust core checks next.
+verified. A field with no source is a missing field, not a value. The trust core
+checks that evidence; the policy filter decides fit on top of it; the two never
+mix. That separation is what keeps the layer from rotting.
