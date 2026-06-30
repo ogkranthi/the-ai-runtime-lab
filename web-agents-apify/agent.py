@@ -15,11 +15,17 @@ prospect list. The list looks done.
 Whether each value is actually true, fresh, and a real fit is the next question,
 and that is the reliability layer you build in module 2.
 
-    python agent.py            # offline, no keys, runs the full loop
-    python agent.py --live     # real Apify Actors and a real model
+    python agent.py                          # offline, no keys, runs the full loop
+    python agent.py --live                   # real Apify Actors and a real model
+    python agent.py --live --seeds f.json    # live, against your own company list
+
+The offline watchlist is fictional, so a live run uses the real companies in
+seeds.example.json unless you pass your own with --seeds.
 """
 from __future__ import annotations
 
+import json
+import os
 import sys
 from typing import List
 
@@ -27,6 +33,9 @@ import present
 from llm import LLMModel, MockModel, Model
 from models import Prospect, SourcedField
 from source import ACTORS, ApifySource, MockSource
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SEEDS_EXAMPLE = os.path.join(HERE, "seeds.example.json")
 
 # The fields the customer frame asks for, each with a spec the model extracts to.
 FIELDS = [
@@ -45,13 +54,27 @@ LABELS = {
 }
 MAX_ACTIONS = 3  # sourcing actions per company before the agent moves on
 
-# A weekly seed list: the founder's watchlist of target companies.
+# The offline demo watchlist. These companies are FICTIONAL: they exist only in
+# the offline crawl fixture, so they resolve with `python agent.py` but not in a
+# live run. For `--live`, point the agent at real companies (see seeds.example.json).
 SEED_LIST = [
     ("Forge Labs", "forgelabs.io"),
     ("Quantal", "quantal.dev"),
     ("Mega Corp", "megacorp.com"),
     ("Helios CRM", "helios.app"),
 ]
+
+
+def load_seeds(path: str) -> List[tuple]:
+    """Load a seed list from JSON: a list of {company, domain} objects."""
+    with open(path, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+    return [(d["company"], d["domain"]) for d in data]
+
+
+def _short(text: str, n: int = 96) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= n else text[: n - 1] + "…"
 
 
 def work_company(company: str, domain: str, model: Model, source, log=print) -> Prospect:
@@ -70,10 +93,11 @@ def work_company(company: str, domain: str, model: Model, source, log=print) -> 
         rationale = plan.get("rationale", "")
         if actor not in ACTORS or actor in tried:
             prospect.actions.append(f"stop: {rationale}")
-            log(f"    stop: {rationale}")
+            log(f"    stop: {_short(rationale)}")
             break
         tried.append(actor)
 
+        log(f"    plan -> {actor}: {_short(rationale)}")
         pages = source.run(actor, company, domain)
         for hit in model.extract(company, pages, FIELDS):
             prospect.fields.setdefault(
@@ -82,20 +106,27 @@ def work_company(company: str, domain: str, model: Model, source, log=print) -> 
 
         found = len(prospect.fields)
         prospect.actions.append(f"ran {actor}: {rationale}")
-        log(f"    plan -> {actor}: {rationale}")
         log(f"    crawled {len(pages)} pages, sourced {found}/{len(FIELDS)} fields")
 
     return prospect
 
 
-def run(live: bool = False, seed_list=SEED_LIST, log=print) -> List[Prospect]:
-    """Source every company on the seed list. Offline by default, live with keys."""
+def run(live: bool = False, seed_list=None, log=print) -> List[Prospect]:
+    """Source every company on the seed list. Offline by default, live with keys.
+
+    Offline uses the fictional demo watchlist. Live defaults to the real companies
+    in seeds.example.json, since the demo companies do not resolve on the web.
+    """
     if live:
         model: Model = LLMModel()
         source = ApifySource()
+        if seed_list is None:
+            seed_list = load_seeds(SEEDS_EXAMPLE)
     else:
         model = MockModel()
         source = MockSource()
+        if seed_list is None:
+            seed_list = SEED_LIST
 
     log(f"Sourcing {len(seed_list)} target companies for design-partner fit...")
     return [work_company(c, d, model, source, log=log) for c, d in seed_list]
@@ -113,8 +144,10 @@ def show(prospects: List[Prospect]) -> None:
     print("\n" + present.rule("PROSPECT LIST  ·  design-partner candidates"))
     print()
     for p in prospects:
+        found = len(p.fields)
+        count = present.style(f"{found}/{len(FIELDS)}", present.GREEN if found == len(FIELDS) else present.YELLOW)
         title = present.style(f"{p.company}", present.BOLD, present.CYAN)
-        print(f"{title}  {present.style(p.domain, present.DIM)}")
+        print(f"{title}  {present.style(p.domain, present.DIM)}  {count}")
         rows = []
         for name, _ in FIELDS:
             sf = p.fields.get(name)
@@ -125,16 +158,34 @@ def show(prospects: List[Prospect]) -> None:
                     (_short_url(sf.evidence.source_url), present.DIM),
                 ])
             else:
-                rows.append([LABELS[name], ("not found", present.RED), ""])
+                rows.append([LABELS[name], ("not found", present.DIM), ""])
         print(present.table(["field", "value", "source"], rows, caps=[20, 46, 40]))
         print()
 
-    print(present.banner(
-        f"✓  {len(prospects)} candidates sourced  ·  {total}/{possible} fields  ·  every value cited"
-    ))
+    # An honest banner: celebrate a full sweep, flag a partial one, call out empty.
+    if total == possible:
+        print(present.banner(f"✓  all {possible} fields sourced and cited", present.GREEN))
+    elif total > 0:
+        print(present.banner(
+            f"{total}/{possible} fields sourced and cited  ·  the rest had no public source",
+            present.YELLOW,
+        ))
+    else:
+        print(present.banner(
+            "0 fields sourced  ·  check the domains are real and reachable",
+            present.YELLOW,
+        ))
     print()
 
 
+def _parse_seeds_arg(argv: List[str]):
+    if "--seeds" in argv:
+        i = argv.index("--seeds")
+        if i + 1 < len(argv):
+            return load_seeds(argv[i + 1])
+    return None
+
+
 if __name__ == "__main__":
-    prospects = run(live="--live" in sys.argv)
-    show(prospects)
+    seeds = _parse_seeds_arg(sys.argv)
+    show(run(live="--live" in sys.argv, seed_list=seeds))

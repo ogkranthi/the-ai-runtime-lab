@@ -56,12 +56,20 @@ class ApifySource:
         return []
 
     def _crawl(self, urls: List[str], max_pages: int) -> List[dict]:
-        run = self.client.actor("apify/website-content-crawler").call(
-            run_input={
-                "startUrls": [{"url": u} for u in urls],
-                "maxCrawlPages": max_pages,
-            },
-        )
+        actor = self.client.actor("apify/website-content-crawler")
+        run_input = {
+            "startUrls": [{"url": u} for u in urls],
+            "maxCrawlPages": max_pages,
+        }
+        # logger=None turns off the Actor run-log stream, which otherwise floods
+        # the terminal and can crash its background thread. Older clients that do
+        # not accept the argument fall back to a plain call.
+        try:
+            run = actor.call(run_input=run_input, logger=None)
+        except TypeError:
+            run = actor.call(run_input=run_input)
+
+        # The run object is a dict or an SDK object depending on client version.
         dataset_id = None
         if isinstance(run, dict):
             dataset_id = run.get("defaultDatasetId") or run.get("default_dataset_id")

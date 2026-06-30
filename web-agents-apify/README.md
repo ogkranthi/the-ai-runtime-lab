@@ -77,6 +77,7 @@ learning material.
 - `models.py`   the data model: Evidence, SourcedField, Prospect
 - `smoke.py`    a thirty-second check that your Apify token works
 - `fixtures/crawl_pages.json`   an offline crawl fixture so the agent runs with no keys
+- `seeds.example.json`   real companies for a live run
 - `requirements.txt`, `.env.example`
 
 ## Setup (VS Code terminal)
@@ -121,6 +122,23 @@ Run it live against real Apify Actors and a real model:
 
 In live mode the model plans the Actors and extracts from the crawled text.
 Everything else is identical.
+
+### Live mode needs real companies
+
+The demo watchlist (Forge Labs, Quantal, and so on) is fictional. Those domains
+exist only in the offline crawl fixture, so a live run against them finds nothing
+and every field comes back "not found". That is the agent being honest: no public
+source, no value.
+
+For a live run, point the agent at real companies. `--live` defaults to the four
+real companies in `seeds.example.json`. To use your own watchlist, pass a JSON
+file of `{"company", "domain"}` objects:
+
+    python agent.py --live --seeds my_targets.json
+
+Live extraction depends on what each site actually publishes, so expect some
+fields to come back "not found". The banner reports honestly how many of the
+possible fields were sourced and cited.
 
 ## Environment variables
 
