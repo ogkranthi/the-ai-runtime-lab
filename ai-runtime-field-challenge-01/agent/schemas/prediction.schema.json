@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Runtime Field Challenge 01 prediction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["complaint_id", "routing_team", "risk_flag", "confidence", "ai_usage", "reason", "evidence"],
+  "properties": {
+    "complaint_id": {"type": "string", "minLength": 1},
+    "routing_team": {
+      "enum": ["account_access", "payments_transfers", "fraud_disputes", "credit_lending", "customer_service", "other"]
+    },
+    "risk_flag": {"type": "boolean"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "ai_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "steps"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1},
+        "steps": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+      }
+    },
+    "reason": {"type": "string", "minLength": 1},
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "source_id", "quote"],
+        "properties": {
+          "criterion": {"enum": ["routing_team", "risk_flag"]},
+          "source_id": {"type": "string", "minLength": 1},
+          "quote": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

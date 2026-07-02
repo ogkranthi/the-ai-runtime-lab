@@ -116,11 +116,33 @@ prospect list. Expected: four candidates, every field cited.
 
 Run it live against real Apify Actors and a real model:
 
-    python smoke.py            # first confirm the token: apify ok: SUCCEEDED
-    python agent.py --live     # needs APIFY_TOKEN and a model key
+    python smoke.py                          # first confirm the token: apify ok: SUCCEEDED
+    python agent.py --live --the-ai-runtime  # needs APIFY_TOKEN and a model key
 
 In live mode the model plans the Actors and extracts from the crawled text.
 Everything else is identical.
+
+### Live mode needs real companies
+
+The demo watchlist (Forge Labs, Quantal, and so on) is fictional. Those domains
+exist only in the offline crawl fixture, so a live run against them finds nothing
+and every field comes back "not found". That is the agent being honest: no public
+source, no value.
+
+The `--the-ai-runtime` flag points a live run at a built-in watchlist of real
+developer-facing companies (Sentry, PostHog, Supabase, Tailscale). A live run
+uses that watchlist by default.
+
+To source a single company inline, pass it on the command line:
+
+    python agent.py --live --company "Acme" --domain acme.com
+
+`--domain` is optional and falls back to the company name. To change the default
+watchlist, edit `THE_AI_RUNTIME_SEEDS` at the top of `agent.py`.
+
+Live extraction depends on what each site actually publishes, so expect some
+fields to come back "not found". The banner reports honestly how many of the
+possible fields were sourced and cited.
 
 ## Environment variables
 
