@@ -1,19 +1,28 @@
 {
-  "placeholder": true,
-  "note": "This manifest describes the PLACEHOLDER dataset shipped with the repo. The 10 complaints in data/complaints.jsonl are synthetic, written by hand to exercise the routing teams, the risk calibration edge cases, and the evaluator. They are not real CFPB records. Run data/prep/prepare_dataset.py against a real CFPB export to replace the placeholder and this manifest.",
-  "cfpb_export_input": null,
-  "prepared_on": null,
+  "placeholder": false,
+  "cfpb_export_input": "48b51f3e-complaints20260702_09_31.csv",
+  "prepared_on": "2026-07-02",
   "seed": 7,
   "target_n": 200,
-  "placeholder_n": 10,
   "min_chars_preferred": 300,
   "max_chars_preferred": 3000,
-  "max_group_share": 0.30,
-  "excluded_if_product_contains": ["credit reporting", "credit repair"],
+  "max_group_share": 0.3,
+  "excluded_if_product_contains": [
+    "credit reporting",
+    "credit repair"
+  ],
   "row_counts": {
-    "raw": null,
-    "with_narrative": null,
-    "bank_relevant": null,
-    "sampled": 10
+    "raw": 275,
+    "with_narrative": 275,
+    "bank_relevant": 263,
+    "sampled": 200
+  },
+  "group_counts": {
+    "cards": 48,
+    "debt_collection": 48,
+    "deposits": 48,
+    "loans": 28,
+    "mortgage": 19,
+    "payments": 9
   }
 }
