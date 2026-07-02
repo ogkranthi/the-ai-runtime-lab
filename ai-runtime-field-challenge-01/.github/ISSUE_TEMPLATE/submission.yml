@@ -1,0 +1,63 @@
+name: Challenge 01 submission
+description: Submit your field report for AI Runtime Field Challenge 01.
+title: "[Submission] "
+labels: ["submission"]
+body:
+  - type: input
+    id: report_link
+    attributes:
+      label: Link to REPORT.md
+      description: Link to the filled-in REPORT.md in your fork.
+      placeholder: https://github.com/you/ai-runtime-field-challenge-01/blob/main/REPORT.md
+    validations:
+      required: true
+  - type: input
+    id: predictions_link
+    attributes:
+      label: Link to predictions.jsonl
+      description: Link to the committed outputs/predictions.jsonl in your fork.
+      placeholder: https://github.com/you/ai-runtime-field-challenge-01/blob/main/outputs/predictions.jsonl
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model used
+      placeholder: provider and model string
+    validations:
+      required: true
+  - type: input
+    id: high_risk_recall
+    attributes:
+      label: High-risk recall
+      description: From your evaluator run.
+    validations:
+      required: true
+  - type: input
+    id: routing_accuracy
+    attributes:
+      label: Routing accuracy
+      description: From your evaluator run.
+    validations:
+      required: true
+  - type: textarea
+    id: interesting_failure
+    attributes:
+      label: Most interesting failure
+      description: What happened and what it revealed.
+    validations:
+      required: true
+  - type: textarea
+    id: technical_decision
+    attributes:
+      label: Most important technical decision
+      description: The decision, the alternative, and the tradeoff.
+    validations:
+      required: true
+  - type: textarea
+    id: share_block
+    attributes:
+      label: Share block
+      description: Your fill-in summary from the report.
+    validations:
+      required: false
