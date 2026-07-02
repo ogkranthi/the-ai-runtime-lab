@@ -30,15 +30,12 @@ not exist for this challenge.
 `XXXX` marks content the CFPB removed before publication. Treat redacted content
 as unknown. Do not guess what was behind a redaction.
 
-## Placeholder status
+## Provenance
 
-The committed file is a PLACEHOLDER: 10 synthetic complaints, written by hand to
-cover the routing teams and the risk edge cases so the repo runs end to end.
-They are not real CFPB records. See `prep/snapshot_manifest.json`
-(`"placeholder": true`).
-
-To build the real 200-complaint snapshot, run `prep/prepare_dataset.py` against a
-CFPB export. See `prep/README.md`.
+The committed file is a real 200-complaint snapshot built from a CFPB export with
+`prep/prepare_dataset.py`. See `prep/snapshot_manifest.json` for the export name,
+the date, and the row counts at each filter step. To rebuild or refresh it from a
+different export, see `prep/README.md`.
 
 ## Quote normalization
 

@@ -102,7 +102,8 @@ def prepare(input_path: str, output_path: str, n: int, seed: int):
         counts["bank_relevant"] += 1
         pool.append({
             "complaint_id": (row.get(ID_COL) or "").strip(),
-            "date_received": (row.get(DATE_COL) or "").strip(),
+            # CFPB exports may give a full ISO timestamp; keep the date only.
+            "date_received": (row.get(DATE_COL) or "").strip().split("T")[0][:10],
             "state": (row.get(STATE_COL) or "").strip(),
             "narrative": narrative,
             "_group": group,

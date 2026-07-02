@@ -24,8 +24,12 @@ Triage the complaint below in four steps, then return one JSON object.
    essential funds, foreclosure or repossession or severe loss, discrimination or
    fair-lending concerns, privacy or data misuse, the company ignoring a required
    dispute or investigation process, or a regulator threat plus a substantive
-   unresolved issue. Apply the calibration rules: angry tone alone is not risk, a
-   short narrative can still be high risk.
+   unresolved issue. Use a recall-first posture: when you are uncertain and the
+   record contains a substantive regulatory or harm allegation tied to an issue
+   the record leaves unresolved, flag it, and a small dollar amount does not by
+   itself make a complaint low risk. Apply the calibration rules: tone and legal
+   boilerplate alone are not risk, a short narrative can still be high risk, and
+   an allegation the record says was already resolved is not high risk.
 
 4. Select evidence. Pick short verbatim quotes copied exactly from the narrative,
    at least one supporting the routing decision and at least one supporting the
