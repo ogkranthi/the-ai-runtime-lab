@@ -8,17 +8,23 @@ argue with them, and do honest failure analysis. The goal is evaluation
 discipline, evidence grounding, and tradeoff thinking under a customer-shaped
 constraint, not a leaderboard number.
 
-The labels were assigned by a single labeler against the frozen rubric. You can
-raise disagreements as GitHub issues, but labels will not change mid-challenge.
+The labels were assigned against the frozen rubric and reviewed by a single
+owner. You can raise disagreements as GitHub issues, but labels will not change
+mid-challenge.
 
-## Placeholder status
+## Current labels
 
-The committed labels cover the 10 placeholder complaints in
-`data/complaints.jsonl`, so the repo runs end to end today. When you build the
-real 200-complaint snapshot (see `data/prep/README.md`), replace these with 40
-hand labels following the spec below.
+The committed labels cover 40 complaints from the real 200-complaint CFPB
+snapshot. They were drafted with model assistance against the frozen rubric and
+should get one human review pass before publication, since the point of this
+folder is evaluation discipline, not an unread label set. Review the risk calls
+on the borderline cases first: the short-but-severe complaints, the
+regulatory-sounding but routine ones, and the vague records routed to `other`.
 
-## Label spec for the real dataset
+The distribution follows the spec below: at least 5 per team (`other` has 3), and
+14 complaints with `risk_flag: true`.
+
+## Label spec
 
 - 40 labeled complaints, listed in `eval_ids.txt`.
 - Routing distribution: at least 5 complaints per routing team (`other` may have
