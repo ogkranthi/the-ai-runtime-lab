@@ -15,24 +15,24 @@ mid-challenge.
 ## Current labels
 
 The committed labels cover 40 complaints from the real 200-complaint CFPB
-snapshot. They were drafted with model assistance against the frozen rubric and
-should get one human review pass before publication, since the point of this
-folder is evaluation discipline, not an unread label set. Review the risk calls
-on the borderline cases first: the short-but-severe complaints, the
-regulatory-sounding but routine ones, and the vague records routed to `other`.
+snapshot, drafted against the frozen rubric and reviewed by the owner. The risk
+calls use the recall-first posture in `rubric.md`: when the record leaves a
+substantive regulatory or harm allegation unresolved, the complaint is flagged,
+and only already-resolved or clearly trivial complaints are left unflagged.
 
 The distribution follows the spec below: at least 5 per team (`other` has 3), and
-14 complaints with `risk_flag: true`.
+25 complaints with `risk_flag: true`.
 
 ## Label spec
 
 - 40 labeled complaints, listed in `eval_ids.txt`.
 - Routing distribution: at least 5 complaints per routing team (`other` may have
   2 to 3).
-- Risk distribution: 10 to 14 complaints with `risk_flag: true`.
+- Risk distribution: with the recall-first posture, expect roughly 22 to 28
+  complaints with `risk_flag: true`.
 - Seed edge cases on purpose: angry-but-routine, short-but-severe, multi-issue
-  where the primary subject requires judgment, vague narratives, and heavily
-  redacted narratives.
+  where the primary subject requires judgment, regulatory-sounding but
+  already-resolved complaints, vague narratives, and heavily redacted narratives.
 - Every label includes a `label_reason` and `evidence_sources` referencing the
   narrative `source_id`. The reason must be supportable from the narrative text
   alone.

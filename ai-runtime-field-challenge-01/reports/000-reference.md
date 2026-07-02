@@ -1,10 +1,10 @@
 # Field report: AI Runtime Field Challenge 01 (reference)
 
 Status: reference against the real 200-complaint snapshot with the 40 golden
-labels. The labels were drafted with model assistance and need a human review
-pass before publication. No live model run was available at build time, so the
-predictions scored here are a build-time stand-in that mirrors a realistic agent
-run (mostly correct, with a few planted errors). Regenerate this by running
+labels. The labels use the recall-first risk posture in `rubric.md`, so 25 of the
+40 are flagged. No live model run was available at build time, so the predictions
+scored here are a build-time stand-in that mirrors a realistic agent run (mostly
+correct, with a few planted errors). Regenerate this by running
 `agent/run_agent.py` with an API key and scoring the output with `run_eval.py`.
 The evaluator numbers below are real output on the real 40 labels.
 
@@ -44,9 +44,9 @@ validates against the schema.
 | Metric | Value |
 |--------|-------|
 | Routing accuracy | 0.93 (37 / 40) |
-| High-risk recall | 0.86 (12 / 14) |
-| High-risk precision | 0.92 (12 / 13) |
-| Risk counts (TP / FP / FN / TN) | 12 / 1 / 2 / 25 |
+| High-risk recall | 0.92 (23 / 25) |
+| High-risk precision | 0.96 (23 / 24) |
+| Risk counts (TP / FP / FN / TN) | 23 / 1 / 2 / 14 |
 | Evidence coverage | 1.00 (40 / 40) |
 | Valid evidence rate | 0.97 (78 / 80) |
 | Runtime | not applicable (build-time stand-in) |
@@ -74,7 +74,7 @@ bar, not to top a score.
 |--------------|-------------------------|--------------------------|--------------|---------------|
 | 23138290 | account_access / true | customer_service / false | Route miss and missed high risk | A short complaint about a closed account with funds held three months, rent behind, and eviction with children read as a routine service runaround. Both the route and the risk were wrong. |
 | 23168131 | account_access / true | account_access / false | Missed high risk | Funds withheld for about ten months across eight returned checks were treated as routine. The risk evidence quote also did not appear in the narrative, so it failed validation. |
-| 23098880 | customer_service / false | customer_service / true | Tone read as risk | A frustrated accessibility complaint from a consumer with a disability was flagged as high risk. The narrative describes a service and communication gap, not financial harm or lending discrimination. |
+| 23124156 | fraud_disputes / false | fraud_disputes / true | Over-flagged risk | A routine $440 credit card billing dispute was flagged as high risk. Under the recall-first posture this is the expected cost: the one false positive against 23 true positives. |
 | 23095960 | fraud_disputes / true | credit_lending / true | Route miss | An unresolved card fraud claim that also mentions account closures pulled the route toward credit_lending. The risk flag was correct. |
 | 23132966 | other / false | customer_service / false | Over-routing a vague record | A mid-conversation transcript fragment was pushed into customer_service instead of other. The model preferred a specific team over admitting the record was too thin. |
 
@@ -85,12 +85,12 @@ closed the account, has held the money for three months, the rent is behind, and
 the consumer fears eviction with their children. The agent read the calm, short
 text as a routine service complaint and got both decisions wrong, routing it to
 customer_service and setting risk false. This is the calibration rule failing in
-practice: a short narrative is not automatically low risk. The severity was in
-the facts (funds withheld, eviction exposure), not in the tone, and the agent
-keyed on tone. The paired failure is 23098880, where the agent overreacted to a
-frustrated but operationally routine accessibility complaint. Together they show
-the same root cause from both sides: risk keyed on affect instead of on concrete
-harm.
+practice: a short narrative is not automatically low risk. Under a recall-first
+posture, a miss like this is the failure that counts, because a high-risk
+complaint reached no one. The severity was in the facts (funds withheld, eviction
+exposure), not in the tone, and the agent missed it. The single false positive in
+this run, a routine billing dispute flagged high, is the cheaper error: the
+posture accepts some over-flagging to avoid exactly the 23138290 kind of miss.
 
 ## 8. What I would change in v2
 
@@ -106,7 +106,7 @@ where this agent is weakest.
 ```
 I built an AI complaint-triage agent for AI Runtime Field Challenge 01.
 
-High-risk recall: 0.86
+High-risk recall: 0.92
 Routing accuracy: 0.93
 
 Most interesting failure: a short, calm complaint about a closed account with

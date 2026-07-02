@@ -43,15 +43,25 @@ regulatory concern. Signals include:
 - threats of regulator contact combined with a substantive unresolved issue
 
 Set `risk_flag: false` for routine, narrow, or low-impact complaints, and for
-complaints where harm is meaningful but the record does not clearly support a
-high-risk flag.
+complaints where the record shows the alleged harm has already been resolved.
+
+### Posture: recall first
+
+For this customer, a missed high-risk complaint is the worst failure, so the flag
+leans toward catching risk. When you are uncertain and the record contains a
+substantive regulatory or customer-harm allegation tied to an issue the record
+leaves unresolved, flag it. A small dollar amount does not by itself make a
+complaint low risk.
 
 ### Calibration rules
 
-- Angry tone alone is not high risk. An emotional complaint can be operationally
-  routine.
+- Tone and legal boilerplate alone are not risk. Anger, all-caps, or a pasted
+  statute citation with no substantive unresolved allegation is not high risk.
+  Flag on the allegation and its lack of resolution, not on the wording.
 - A short narrative is not automatically low risk. A short complaint can still
   describe fraud, loss of funds, discrimination, or inability to access money.
+- Already-resolved harm is not high risk. If the record states the problem was
+  fixed (for example, a disputed item that no longer appears), do not flag it.
 
 ## 3. Evidence
 
