@@ -43,6 +43,19 @@ fine, but they are not eligible to be featured.
 
 ## Quick start
 
+### Step 1: See the evaluator work (no API key, under two minutes)
+
+```bash
+pip install jsonschema
+python run_eval.py --predictions examples/predictions.example.jsonl
+```
+
+This scores the bundled example predictions against the golden labels and prints
+the full evaluation output. No API key, no network, no model call. It is the
+fastest way to understand how you will be scored.
+
+### Step 2: Run the agent and score your own predictions
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -55,9 +68,8 @@ python run_eval.py --predictions outputs/predictions.jsonl
 cp REPORT_TEMPLATE.md REPORT.md
 ```
 
-The repo ships with a placeholder dataset (10 synthetic complaints) so it runs
-end to end immediately. See `data/README.md` to build the real 200-complaint
-snapshot from the CFPB export.
+The committed dataset is the real 200-complaint CFPB snapshot. See
+`data/README.md` for how it was built and how to rebuild it from a fresh export.
 
 ## Cost note
 
