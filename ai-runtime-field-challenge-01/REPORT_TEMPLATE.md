@@ -1,9 +1,14 @@
 # Field report: AI Runtime Field Challenge 01
 
-## 1. Links
+## 1. Header
 
+- Report date: <YYYY-MM-DD, required>
+- Model: <provider and model string, required>
 - Predictions file: `outputs/predictions.jsonl` (path in your fork)
 - Fork: <link to your fork>
+
+The report date and model string are required. They make each Field Report a
+dated, versioned, citable artifact.
 
 ## 2. AI usage
 

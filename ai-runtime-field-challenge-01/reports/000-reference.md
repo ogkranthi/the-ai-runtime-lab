@@ -8,8 +8,11 @@ correct, with a few planted errors). Regenerate this by running
 `agent/run_agent.py` with an API key and scoring the output with `run_eval.py`.
 The evaluator numbers below are real output on the real 40 labels.
 
-## 1. Links
+## 1. Header
 
+- Report date: 2026-07-03
+- Model: anthropic, claude-sonnet-5 (reference default; the numbers below are a
+  build-time stand-in, not a live run)
 - Predictions file: build-time stand-in over the 40 labeled complaints
 - Fork: this repository
 
