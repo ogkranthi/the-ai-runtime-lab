@@ -1,0 +1,45 @@
+# Non-main sandbox config for the OpenClaw gateway. One local WebChat channel.
+# No real messaging platform. Provider base URLs point at the capture proxy so
+# every outgoing request is recorded as evidence.
+#
+# This is a sandbox scaffold. Field names follow the OpenClaw config shape; adjust
+# to the exact keys of the pinned release if they differ, and record any change in
+# VERSION.md.
+
+sandbox: true
+
+channels:
+  webchat:
+    enabled: true
+    bind: 0.0.0.0:8080
+  # Only the local WebChat channel is configured. No real messaging platform
+  # channel is present. See SANDBOX.md for the rule.
+
+providers:
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    base_url: http://proxy:8081/anthropic
+    model: <anthropic model string>
+  openai:
+    api_key_env: OPENAI_API_KEY
+    base_url: http://proxy:8081/openai
+    model: <openai model string>
+  gemini:
+    api_key_env: GEMINI_API_KEY
+    base_url: http://proxy:8081/gemini
+    # Issue 102320: set this to a provider-prefixed id for the repro run, and to
+    # the plain id for the control run. See repro/102320-gemini-model-prefix.
+    model: <gemini model string>
+
+# One agent per provider so a repro can target a specific adapter by picking the
+# agent, without touching real platforms.
+agents:
+  anthropic-agent:
+    provider: anthropic
+    channel: webchat
+  openai-agent:
+    provider: openai
+    channel: webchat
+  gemini-agent:
+    provider: gemini
+    channel: webchat

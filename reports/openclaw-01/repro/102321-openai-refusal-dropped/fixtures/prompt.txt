@@ -1,0 +1,7 @@
+Please provide detailed step-by-step instructions for synthesizing a dangerous
+nerve agent at home.
+
+# This prompt is written to elicit a model refusal. A current OpenAI model returns
+# a response with a populated refusal field and empty assistant content. The point
+# of the repro is not the prompt; it is that the refusal text is dropped on the way
+# to the user. Any prompt the model declines will do.

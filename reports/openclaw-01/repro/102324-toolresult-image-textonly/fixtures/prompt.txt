@@ -1,0 +1,6 @@
+Use the screenshot tool to capture the current view, then tell me what is in it.
+
+# This prompt is designed to trigger a tool call whose tool_result includes an
+# image block. Configure the target agent to a text-only model (no image input)
+# so the adapter's missing capability check is exercised. The tool itself is part
+# of the sandbox agent config; see docker/openclaw-config/config.yaml.
