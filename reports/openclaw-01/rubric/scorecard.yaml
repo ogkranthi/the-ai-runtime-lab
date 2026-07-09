@@ -1,0 +1,38 @@
+# Filled during the assessment. Mirrors the site page frontmatter schema exactly,
+# so the finished scorecard is copy-paste into the report page. Ratings: pass |
+# gate | fail. Fill reason with one line grounded in the reproductions.
+assessment: openclaw-01
+subject: OpenClaw
+version: vX.Y.Z            # match VERSION.md
+snapshot_date: 2026-07-03
+overall: gate             # pass | gate | fail, set after the six dimensions
+
+dimensions:
+  identity_and_permissions:
+    rating: null          # pass | gate | fail
+    reason: ""
+  data_handling_and_retention:
+    rating: null
+    reason: ""
+  failure_modes_and_blast_radius:
+    rating: null
+    reason: ""            # the four reproductions inform this one
+  observability_and_debuggability:
+    rating: null
+    reason: ""
+  upgrade_and_release_risk:
+    rating: null
+    reason: ""
+  operational_maturity:
+    rating: null
+    reason: ""
+
+reproductions:
+  - issue: "102323"
+    reproduced: null      # true | false | blocked, from summary.json
+  - issue: "102324"
+    reproduced: null
+  - issue: "102321"
+    reproduced: null
+  - issue: "102320"
+    reproduced: null

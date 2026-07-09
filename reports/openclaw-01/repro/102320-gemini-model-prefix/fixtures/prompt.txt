@@ -1,0 +1,5 @@
+Run the chart tool for last month's totals, then summarize the returned chart.
+
+# This prompt drives a tool call whose functionResponse carries non-text data,
+# which exercises the multimodal capability check. Configure the Gemini agent's
+# model id per the two variants in README.md (prefixed, then unprefixed control).

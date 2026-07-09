@@ -1,0 +1,44 @@
+# Isolated sandbox: OpenClaw gateway plus a capture proxy. Local WebChat only.
+# No real messaging platform is configured. Pin the image tag to VERSION.md.
+name: openclaw-01
+
+services:
+  proxy:
+    # The capture proxy. It forwards provider traffic to the real APIs and writes
+    # sanitized request and response pairs into the active repro's evidence dir.
+    image: mitmproxy/mitmproxy:latest
+    command: >
+      mitmdump
+      -s /harness/proxy/capture_addon.py
+      --listen-host 0.0.0.0
+      --listen-port 8081
+      --set stream_large_bodies=10m
+    environment:
+      # repro.sh sets CAPTURE_DIR to the active repro's evidence path before up.
+      CAPTURE_DIR: /capture
+    volumes:
+      - ../harness:/harness:ro
+      - ${CAPTURE_DIR:-./_capture}:/capture
+    ports:
+      - "8081:8081"
+
+  gateway:
+    # Pin this tag. Replace vX.Y.Z with the release recorded in VERSION.md.
+    image: ghcr.io/openclaw/openclaw:vX.Y.Z
+    depends_on:
+      - proxy
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Route the gateway's outbound provider calls through the capture proxy.
+      # The config in openclaw-config also points each provider base_url at the
+      # proxy; these are belt and suspenders for adapters that read the env.
+      HTTP_PROXY: http://proxy:8081
+      HTTPS_PROXY: http://proxy:8081
+      OPENCLAW_CONFIG: /config/config.yaml
+    volumes:
+      - ./openclaw-config:/config:ro
+    ports:
+      # Local WebChat channel. This is the only channel exposed.
+      - "8080:8080"
